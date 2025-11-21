@@ -5,8 +5,8 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKERHUB_USERNAME: jocamposar #usuario DockerHub
-  DOCKERHUB_REPO:   full_stack2_back     #repo DockerHub
+  DOCKERHUB_USERNAME: carlitroxx
+  DOCKERHUB_REPO:   ev3_devops
 
 jobs:
   build:
