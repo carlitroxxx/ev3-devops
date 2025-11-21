@@ -1,0 +1,71 @@
+version: "3.8"
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./devops_config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: always
+    networks:
+      - devops
+
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./devops_config/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - ./loki_data:/loki
+      - ./loki_wal:/wal
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - devops
+
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: promtail
+    volumes:
+      - ./devops_config/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./logs:/usr/src/app/logs
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - devops
+
+  grafana:
+    image: grafana/grafana:9.5.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - devops
+
+  app:
+    image: carlitroxx/ev3_devops:latest
+    container_name: back
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./logs:/usr/src/app/logs
+    networks:
+      - devops
+
+networks:
+  devops:
+
+volumes:
+  prometheus_data:
+  loki_data:
+  wal_data:
